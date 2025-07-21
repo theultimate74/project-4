@@ -1,0 +1,120 @@
+main.py
+python
+Copy
+Edit
+from crypto_utils import generate_key, load_key, encrypt_text, decrypt_text, encrypt_file, decrypt_file
+
+def main():
+    print("=== Python Encryption Tool ===\n")
+    print("1. Generate Key")
+    print("2. Encrypt Text")
+    print("3. Decrypt Text")
+    print("4. Encrypt File")
+    print("5. Decrypt File")
+    print("0. Exit\n")
+
+    key_path = "secret.key"
+    key = None
+
+    while True:
+        choice = input("Choose an option: ").strip()
+
+        if choice == "0":
+            print("Goodbye!")
+            break
+
+        elif choice == "1":
+            generate_key(key_path)
+            print(f" New key saved to {key_path}")
+
+        elif choice in ["2", "3", "4", "5"]:
+            try:
+                key = load_key(key_path)
+            except:
+                print(" Key not found. Generate it first.")
+                continue
+
+            if choice == "2":
+                plaintext = input("Enter text to encrypt: ")
+                encrypted = encrypt_text(plaintext, key)
+                print(" Encrypted:", encrypted)
+
+            elif choice == "3":
+                ciphertext = input("Enter text to decrypt: ")
+                try:
+                    decrypted = decrypt_text(ciphertext, key)
+                    print(" Decrypted:", decrypted)
+                except:
+                    print(" Invalid encrypted text or key.")
+
+            elif choice == "4":
+                file_path = input("Enter file path to encrypt: ")
+                encrypt_file(file_path, key)
+
+            elif choice == "5":
+                file_path = input("Enter file path to decrypt: ")
+                decrypt_file(file_path, key)
+
+        else:
+            print(" Invalid choice.")
+
+if __name__ == "__main__":
+    main()
+ crypto_utils.py
+python
+Copy
+Edit
+from cryptography.fernet import Fernet
+
+def generate_key(filename="secret.key"):
+    """Generate a new AES key and save to file"""
+    key = Fernet.generate_key()
+    with open(filename, 'wb') as f:
+        f.write(key)
+
+def load_key(filename="secret.key"):
+    """Load the AES key from file"""
+    with open(filename, 'rb') as f:
+        return f.read()
+
+def encrypt_text(plaintext, key):
+    """Encrypt text using the provided key"""
+    f = Fernet(key)
+    return f.encrypt(plaintext.encode()).decode()
+
+def decrypt_text(ciphertext, key):
+    """Decrypt text using the provided key"""
+    f = Fernet(key)
+    return f.decrypt(ciphertext.encode()).decode()
+
+def encrypt_file(filepath, key):
+    """Encrypt a file's contents"""
+    f = Fernet(key)
+    try:
+        with open(filepath, 'rb') as file:
+            data = file.read()
+        encrypted_data = f.encrypt(data)
+        with open(filepath + ".enc", 'wb') as file:
+            file.write(encrypted_data)
+        print(" File encrypted successfully.")
+    except Exception as e:
+        print(" Error:", e)
+
+def decrypt_file(filepath, key):
+    """Decrypt an encrypted file"""
+    f = Fernet(key)
+    try:
+        with open(filepath, 'rb') as file:
+            data = file.read()
+        decrypted_data = f.decrypt(data)
+        original_name = filepath.replace(".enc", "") + ".dec"
+        with open(original_name, 'wb') as file:
+            file.write(decrypted_data)
+        print(" File decrypted successfully.")
+    except Exception as e:
+        print(" Error:", e)
+ requirements.txt
+txt
+Copy
+Edit
+cryptography
